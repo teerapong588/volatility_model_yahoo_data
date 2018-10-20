@@ -14,5 +14,8 @@ for ( name in stock_names) {
 
 write.csv(as.data.frame(stock_series),"stock_series.csv")
 
+log_ret <- Return.calculate(stock_series, method = "log")
+df_rtn_series <- fortify(log_ret)
+
 
 
