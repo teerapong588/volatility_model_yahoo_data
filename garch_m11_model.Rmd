@@ -1,0 +1,68 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r}
+# Pull data from yahoo
+source("download_library.R")
+stock_names <- c("AAPL","MSFT","AMZN","FB","JPM","XOM","GOOG","GOOGL","JNJ")
+start <- "2008-1-1" 
+end <- "2018-1-1" 
+
+stock_series <- data.frame()
+
+for ( name in stock_names) {
+  get_data <- getSymbols(name, from = start, to = end, auto.assign = F)[ ,4]
+  names(get_data) <- name
+  stock_series <- merge.xts(get_data, stock_series)
+}
+
+write.csv(as.data.frame(stock_series),"stock_series.csv")
+```
+
+```{r}
+log_ret <- Return.calculate(stock_series, method = "log")
+log_ret[is.na(log_ret)] <- 0
+df_rtn_series <- fortify(log_ret)
+```
+
+```{r}
+# Calculate log returns
+log_ret <- Return.calculate(stock_series, method = "log")
+
+# Nomality test using Shapiro Test
+lshap <- lapply(as.data.frame(log_ret), shapiro.test)
+lres <- sapply(lshap, `[`, c("statistic","p.value"))
+des <- t(lres)
+
+ladf <- lapply(as.data.frame(log_ret), function(x) {Box.test(x,lag = 20, type = "Ljung-Box")})
+des <- sapply(ladf, `[`, c("statistic", "p.value"))
+des <- t(des)
+```
+
+```{r}
+
+dat <- read.xlsx(xlsxFile = "sp500.xlsx", colNames = F, rowNames = F)
+names(dat) <- "sp"
+x <- seq(1:sapply(dat, length))
+
+ggplot(data = data.frame(), aes(x=x, y=dat[[1]])) + geom_line()
+
+garchMod <- ugarchspec(variance.model = list(model = "sGARCH", 
+                                             garchOrder = c(1,1)),
+                       
+                       mean.model = list(armaOrder=c(0,0),
+                                         include.mean=T,
+                                         archm=F,
+                                         archpow=NULL
+                                         ),
+                       distribution.model = "norm"
+                       )
+
+garch_m11 <- ugarchfit(spec=garchMod, data=dat)
+
+names(garch_m11@fit)
+
+```
+
