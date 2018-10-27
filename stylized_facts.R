@@ -10,3 +10,4 @@ des <- t(lres)
 ladf <- lapply(as.data.frame(log_ret), function(x) {Box.test(x,lag = 20, type = "Ljung-Box")})
 des <- sapply(ladf, `[`, c("statistic", "p.value"))
 des <- t(des)
+
