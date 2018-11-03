@@ -1,4 +1,3 @@
-source("download_library.R")
 dat <- read.xlsx(xlsxFile = "sp500.xlsx", colNames = F, rowNames = F)
 names(dat) <- "sp"
 x <- seq(1:sapply(dat, length))
@@ -17,9 +16,8 @@ garchMod <- ugarchspec(variance.model = list(model = "sGARCH",
 
 garch11 <- ugarchfit(spec=garchMod, data=dat, out.sample = 20)
 
-forc <- ugarchforecast(fitORspec = garch11, n.ahead = 20)
-forc.roll <- ugarchforecast(fitORspec = garch11, n.ahead = 20, n.roll = 20)
-
+forc <- ugarchforecast(fitORspec = garch11, n.ahead = 5)
+forc.roll <- ugarchforecast(fitORspec = garch11, n.ahead = 2, n.roll = 5,)
 graphics.off(); par("mar"); par(mar=c(1,1,1,1));
 plot(forc, which =1)
 plot(forc.roll, which="all")
